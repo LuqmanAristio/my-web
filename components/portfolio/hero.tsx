@@ -247,7 +247,7 @@ export function Hero() {
         
         {/* Large background number */}
         <div 
-          className="absolute right-0 top-1/2 -translate-y-1/2 text-[25vw] font-bold text-foreground/6 leading-none pointer-events-none select-none hidden lg:block"
+          className="absolute right-0 top-1/2 -translate-y-1/2 text-[20rem] lg:text-[28rem] font-bold text-foreground/6 leading-none pointer-events-none select-none"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(-50%) translateX(10%)" : "translateY(-50%) translateX(30%)",

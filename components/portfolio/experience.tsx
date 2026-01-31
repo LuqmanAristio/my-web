@@ -53,93 +53,178 @@ export function Experience() {
     <section
       ref={ref}
       id="experience"
-      className="fullpage-section relative h-screen flex items-center justify-center overflow-hidden px-6"
+      className="
+        fullpage-section
+        relative
+        min-h-screen md:h-screen
+        flex
+        items-center
+        px-4 md:px-6
+        py-0 md:py-0
+        overflow-hidden
+      "
     >
-      {/* Large background number */}
-      <div 
-        className="absolute right-0 md:right-12 top-1/2 -translate-y-1/2 text-[20rem] md:text-[28rem] font-bold text-foreground/6 select-none pointer-events-none leading-none"
+      {/* Background number */}
+      <div
+        className="
+          absolute
+          right-1/2 translate-x-1/2
+          md:right-12 md:translate-x-0
+          top-1/2 -translate-y-1/2
+          text-[20rem] lg:text-[28rem]
+          font-bold
+          text-foreground/5
+          pointer-events-none
+          select-none
+          leading-none
+        "
         style={{
           opacity: isInView ? 1 : 0,
-          transform: isInView ? "translateY(-50%) translateX(0)" : "translateY(-50%) translateX(50px)",
-          transition: "all 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
+          transition: "opacity 0.8s ease",
         }}
       >
         04
       </div>
 
-      <div className="max-w-6xl mx-auto w-full relative z-10">
-        {/* Section header */}
-        <div 
-          className="flex items-center gap-4 mb-12"
+      <div className="w-full max-w-105 md:max-w-6xl mx-auto relative z-10">
+        {/* Header */}
+        <div
+          className="flex items-center gap-4 mb-10"
           style={{
             opacity: isInView ? 1 : 0,
-            transform: isInView ? "translateY(0)" : "translateY(30px)",
-            transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: isInView ? "translateY(0)" : "translateY(20px)",
+            transition:
+              "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold">Experience</h2>
+          <h2 className="text-3xl md:text-4xl font-bold">
+            Experience
+          </h2>
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        {/* Timeline */}
-        <div className="relative">
-          {/* Timeline line */}
-          <div 
-            className="absolute left-0 md:left-8 top-0 w-px bg-border"
-            style={{
-              height: isInView ? "100%" : "0%",
-              transition: "height 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
-            }}
-          />
-
-          <div className="space-y-8">
-            {experiences.map((exp, index) => (
-              <div
+        {/* ================= MOBILE: HORIZONTAL SWIPE ================= */}
+        <div className="md:hidden">
+          <div
+            className="
+              flex
+              gap-4
+              overflow-x-auto
+              snap-x snap-mandatory
+              pb-6
+            "
+          >
+            {experiences.map((exp) => (
+              <article
                 key={exp.id}
-                className="relative pl-8 md:pl-20"
-                style={{
-                  opacity: isInView ? 1 : 0,
-                  transform: isInView ? "translateX(0)" : "translateX(-30px)",
-                  transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.2 + index * 0.15}s`,
-                }}
+                className="
+                  min-w-full
+                  snap-center
+                  rounded-2xl
+                  bg-secondary/30
+                  border border-border/50
+                  p-5
+                "
               >
-                {/* Timeline dot */}
-                <div 
-                  className="absolute left-0 md:left-8 top-2 w-3 h-3 rounded-full bg-accent border-4 border-background -translate-x-1/2 z-10"
-                  style={{
-                    transform: `translateX(-50%) scale(${isInView ? 1 : 0})`,
-                    transition: `transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${0.4 + index * 0.15}s`,
-                  }}
-                />
-
-                {/* Content */}
-                <div className="p-6 rounded-2xl bg-secondary/30 border border-border/50 hover:border-accent/30 transition-all duration-500 hover:shadow-lg hover:shadow-accent/5">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold">{exp.role}</h3>
-                      <p className="text-accent text-sm">{exp.company} <span className="text-muted-foreground">- {exp.location}</span></p>
-                    </div>
-                    <span className="text-xs font-mono text-muted-foreground px-3 py-1 rounded-full bg-secondary w-fit">
-                      {exp.period}
+                <div className="mb-3">
+                  <h3 className="text-lg font-semibold">
+                    {exp.role}
+                  </h3>
+                  <p className="text-accent text-sm">
+                    {exp.company}{" "}
+                    <span className="text-muted-foreground">
+                      - {exp.location}
                     </span>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">{exp.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {exp.highlights.map((highlight, i) => (
-                      <span
-                        key={i}
-                        className="text-xs text-muted-foreground flex items-center gap-1"
-                      >
-                        <span className="text-accent">{">"}</span>
-                        {highlight}
+                  </p>
+                </div>
+
+                <span className="inline-block mb-3 text-xs font-mono text-muted-foreground px-3 py-1 rounded-full bg-secondary">
+                  {exp.period}
+                </span>
+
+                <p className="text-sm text-muted-foreground mb-4">
+                  {exp.description}
+                </p>
+
+                <div className="flex flex-col gap-2">
+                  {exp.highlights.map((h, i) => (
+                    <div
+                      key={i}
+                      className="text-xs text-muted-foreground flex gap-2"
+                    >
+                      <span className="text-accent">{">"}</span>
+                      {h}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-2 text-xs text-muted-foreground text-center">
+            Swipe to explore →
+          </p>
+        </div>
+
+        {/* ================= DESKTOP: TIMELINE ================= */}
+        <div className="hidden md:block">
+          <div className="relative">
+            <div className="absolute left-8 top-0 w-px h-full bg-border" />
+
+            <div className="space-y-8">
+              {experiences.map((exp, index) => (
+                <div
+                  key={exp.id}
+                  className="relative pl-20"
+                  style={{
+                    opacity: isInView ? 1 : 0,
+                    transform: isInView
+                      ? "translateX(0)"
+                      : "translateX(-20px)",
+                    transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${
+                      0.2 + index * 0.15
+                    }s`,
+                  }}
+                >
+                  <div className="absolute left-8 top-2 w-3 h-3 rounded-full bg-accent border-4 border-background -translate-x-1/2" />
+
+                  <div className="p-6 rounded-2xl bg-secondary/30 border border-border/50 hover:border-accent/30 transition-all duration-500">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          {exp.role}
+                        </h3>
+                        <p className="text-accent text-sm">
+                          {exp.company}{" "}
+                          <span className="text-muted-foreground">
+                            - {exp.location}
+                          </span>
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono text-muted-foreground px-3 py-1 rounded-full bg-secondary">
+                        {exp.period}
                       </span>
-                    ))}
+                    </div>
+
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {exp.description}
+                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      {exp.highlights.map((h, i) => (
+                        <div
+                          key={i}
+                          className="text-xs text-muted-foreground flex gap-2"
+                        >
+                          <span className="text-accent">{">"}</span>
+                          {h}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

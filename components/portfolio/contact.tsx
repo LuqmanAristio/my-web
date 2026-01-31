@@ -45,7 +45,7 @@ export function Contact() {
       <div className="max-w-5xl mx-auto w-full relative z-10">
         {/* Section header */}
         <div 
-          className="flex items-center gap-4 mb-12"
+          className="flex items-center mt-6 lg:mt-0 gap-4 mb-4 lg:mb-12"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(0)" : "translateY(30px)",
@@ -56,7 +56,7 @@ export function Contact() {
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left - Contact info */}
           <div className="space-y-6">
             <div
@@ -111,7 +111,7 @@ export function Contact() {
 
             {/* Social links */}
             <div 
-              className="pt-4"
+              className="lg:pt-4 pt-0"
               style={{
                 opacity: isInView ? 1 : 0,
                 transform: isInView ? "translateY(0)" : "translateY(30px)",
