@@ -56,7 +56,7 @@ export function Experience() {
       className="
         fullpage-section
         relative
-        min-h-screen md:h-screen
+        min-h-dvh md:h-dvh
         flex
         items-center
         px-4 md:px-6

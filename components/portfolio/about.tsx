@@ -38,7 +38,7 @@ export function About() {
       className="
         fullpage-section
         relative
-        min-h-screen md:h-screen
+        min-h-dvh md:h-dvh
         px-4 md:px-6
         py-16 md:py-0
         flex

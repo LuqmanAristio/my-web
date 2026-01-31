@@ -7,6 +7,8 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import { FullPageContext } from "./fullpage-context";
+
 
 interface FullPageWrapperProps {
   children: ReactNode;
@@ -33,13 +35,16 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   const isTicking = useRef(false);
   const touchStartY = useRef(0);
 
+  const getViewportHeight = () =>
+    window.visualViewport?.height || window.innerHeight;
+
   const clampSection = (index: number) =>
     Math.max(0, Math.min(index, sections.length - 1));
 
   const scrollToSection = useCallback((index: number) => {
     const clamped = clampSection(index);
     setActiveSection(clamped);
-    targetY.current = clamped * window.innerHeight;
+    targetY.current = clamped * getViewportHeight();
   }, []);
 
   /* ================= RAF LOOP ================= */
@@ -103,9 +108,29 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
     };
   }, [activeSection, scrollToSection]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      targetY.current = activeSection * (window.visualViewport?.height || window.innerHeight);
+      currentY.current = targetY.current;
+      if (containerRef.current) {
+        containerRef.current.style.transform = `translateY(-${currentY.current}px)`;
+      }
+    };
+
+    window.visualViewport?.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, [activeSection]);
+
+
   /* ================= RENDER ================= */
   return (
     <>
+    <FullPageContext.Provider value={{ scrollToSection }}>
       {/* ================= UI OVERLAY ================= */}
 
       {/* Logo MLA */}
@@ -147,6 +172,7 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
           {children}
         </div>
       </div>
+    </FullPageContext.Provider>
     </>
   );
 }

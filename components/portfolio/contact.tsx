@@ -28,7 +28,7 @@ export function Contact() {
     <section
       ref={ref}
       id="contact"
-      className="fullpage-section relative h-screen flex items-center justify-center overflow-hidden px-6 bg-secondary/20"
+      className="fullpage-section relative h-dvh flex items-center justify-center overflow-hidden px-6 bg-secondary/20"
     >
       {/* Large background number */}
       <div 

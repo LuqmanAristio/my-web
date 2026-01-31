@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSectionInView } from "@/hooks/use-section-in-view";
+import { useFullPage } from "./fullpage-context";
 
 // Text scramble effect hook
 function useTextScramble(text: string, isActive: boolean) {
@@ -199,6 +200,7 @@ export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { ref, isInView } = useSectionInView(0.5);
   const [showScramble, setShowScramble] = useState(false);
+  const { scrollToSection } = useFullPage();
 
   const scrambledText = useTextScramble("FULL STACK DEVELOPER", showScramble);
 
@@ -225,7 +227,7 @@ export function Hero() {
     <section
       ref={ref}
       id="hero"
-      className="fullpage-section relative h-screen overflow-hidden"
+      className="fullpage-section relative h-dvh overflow-hidden"
     >
       <FloatingParticles />
       <GlowingOrb mousePosition={mousePosition} />
@@ -418,8 +420,8 @@ export function Hero() {
               transition: "all 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.8s",
             }}
           >
-            <a
-              href="#projects"
+            <button
+              onClick={() => scrollToSection(2)}
               className="group relative flex items-center gap-3 text-foreground font-medium"
             >
               <span className="relative">
@@ -427,27 +429,26 @@ export function Hero() {
                 <span className="absolute -bottom-1 left-0 w-full h-px bg-foreground scale-x-100 group-hover:scale-x-0 transition-transform duration-500 origin-right" />
                 <span className="absolute -bottom-1 left-0 w-full h-px bg-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
               </span>
-              <svg 
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" 
-                fill="none" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
               </svg>
-            </a>
+            </button>
             
             <span className="text-muted-foreground/30">|</span>
             
-            <a
-              href="#contact"
-              className="group relative text-muted-foreground hover:text-foreground transition-colors duration-300"
+            <button
+              onClick={() => scrollToSection(4)} // Contact
+              className="group relative text-muted-foreground hover:text-foreground"
             >
-              <span className="relative">
-                Get in Touch
-                <span className="absolute -bottom-1 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-500" />
-              </span>
-            </a>
+              Get in Touch
+            </button>
           </div>
         </div>
 
