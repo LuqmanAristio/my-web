@@ -36,7 +36,7 @@ export function About() {
     >
       {/* Large background number */}
       <div
-        className="absolute right-0 md:right-12 top-1/2 -translate-y-1/2 text-[20rem] md:text-[28rem] font-bold text-foreground/[0.02] select-none pointer-events-none leading-none"
+        className="absolute right-0 md:right-12 top-1/2 -translate-y-1/2 text-[20rem] md:text-[28rem] font-bold text-foreground/6 select-none pointer-events-none leading-none"
         style={{
           opacity: isInView ? 1 : 0,
           transform: isInView
@@ -139,7 +139,7 @@ export function About() {
                 >
                   <div className="relative p-6 rounded-2xl bg-secondary/30 border border-border/50 hover:border-accent/30 transition-all duration-500 overflow-hidden">
                     {/* Hover gradient effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-4">
                       {/* Category number and name */}

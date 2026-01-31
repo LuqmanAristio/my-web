@@ -42,10 +42,10 @@ function useTextScramble(text: string, isActive: boolean) {
 // Orbital animation component - elegant continuous motion
 function OrbitalRings() {
   return (
-    <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[600px] md:h-[600px] pointer-events-none">
+    <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-125 h-125 md:w-150 md:h-150 pointer-events-none">
       {/* Outer ring */}
       <div 
-        className="absolute inset-0 rounded-full border border-accent/[0.08]"
+        className="absolute inset-0 rounded-full border border-accent/20"
         style={{
           animation: "spin 60s linear infinite",
         }}
@@ -54,7 +54,7 @@ function OrbitalRings() {
         {[0, 90, 180, 270].map((deg) => (
           <div
             key={deg}
-            className="absolute w-1.5 h-1.5 bg-accent/30 rounded-full"
+            className="absolute w-2 h-2 bg-accent/50 rounded-full"
             style={{
               top: "50%",
               left: "50%",
@@ -66,7 +66,7 @@ function OrbitalRings() {
       
       {/* Middle ring - counter rotate */}
       <div 
-        className="absolute inset-[15%] rounded-full border border-foreground/[0.04]"
+        className="absolute inset-[15%] rounded-full border border-foreground/10"
         style={{
           animation: "spin 45s linear infinite reverse",
         }}
@@ -74,7 +74,7 @@ function OrbitalRings() {
         {[45, 135, 225, 315].map((deg) => (
           <div
             key={deg}
-            className="absolute w-1 h-1 bg-foreground/20 rounded-full"
+            className="absolute w-1.5 h-1.5 bg-foreground/30 rounded-full"
             style={{
               top: "50%",
               left: "50%",
@@ -86,7 +86,7 @@ function OrbitalRings() {
       
       {/* Inner ring */}
       <div 
-        className="absolute inset-[30%] rounded-full border border-accent/[0.06]"
+        className="absolute inset-[30%] rounded-full border border-accent/15"
         style={{
           animation: "spin 30s linear infinite",
         }}
@@ -94,12 +94,12 @@ function OrbitalRings() {
         {[0, 120, 240].map((deg) => (
           <div
             key={deg}
-            className="absolute w-2 h-2 rounded-full"
+            className="absolute w-2.5 h-2.5 rounded-full"
             style={{
               top: "50%",
               left: "50%",
               transform: `rotate(${deg}deg) translateX(50%) translateX(calc(105px - 50%)) translateY(-50%)`,
-              background: "radial-gradient(circle, rgba(56, 189, 178, 0.4) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(56, 189, 178, 0.6) 0%, transparent 70%)",
             }}
           />
         ))}
@@ -109,7 +109,7 @@ function OrbitalRings() {
       <div 
         className="absolute inset-[45%] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(56, 189, 178, 0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(56, 189, 178, 0.25) 0%, transparent 70%)",
           animation: "pulse 4s ease-in-out infinite",
         }}
       />
@@ -124,7 +124,7 @@ function AnimatedGradientLine() {
       <div 
         className="h-full w-[200%]"
         style={{
-          background: "linear-gradient(90deg, transparent, transparent 25%, rgba(56, 189, 178, 0.3) 50%, transparent 75%, transparent)",
+          background: "linear-gradient(90deg, transparent, transparent 25%, rgba(56, 189, 178, 0.5) 50%, transparent 75%, transparent)",
           animation: "slideRight 8s linear infinite",
         }}
       />
@@ -134,22 +134,44 @@ function AnimatedGradientLine() {
 
 // Floating particles component
 function FloatingParticles() {
+  const [particles, setParticles] = useState<
+    {
+      left: string
+      top: string
+      duration: number
+      delay: number
+    }[]
+  >([])
+
+  useEffect(() => {
+    const generated = Array.from({ length: 12 }).map(() => ({
+      left: `${10 + Math.random() * 80}%`,
+      top: `${10 + Math.random() * 80}%`,
+      duration: 15 + Math.random() * 10,
+      delay: Math.random() * 5,
+    }))
+
+    setParticles(generated)
+  }, [])
+
+  if (!particles.length) return null
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(10)].map((_, i) => (
+      {particles.map((p, i) => (
         <div
           key={i}
-          className="absolute w-0.5 h-0.5 bg-accent/30 rounded-full"
+          className="absolute w-1 h-1 bg-accent/50 rounded-full"
           style={{
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`,
-            animation: `float ${15 + Math.random() * 10}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 5}s`,
+            left: p.left,
+            top: p.top,
+            animation: `float ${p.duration}s ease-in-out infinite`,
+            animationDelay: `${p.delay}s`,
           }}
         />
       ))}
     </div>
-  );
+  )
 }
 
 // Glowing orb that follows cursor subtly
@@ -160,10 +182,10 @@ function GlowingOrb({
 }) {
   return (
     <div
-      className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
+      className="absolute w-150 h-150 rounded-full pointer-events-none"
       style={{
         background:
-          "radial-gradient(circle, rgba(56, 189, 178, 0.06) 0%, transparent 70%)",
+          "radial-gradient(circle, rgba(56, 189, 178, 0.12) 0%, transparent 70%)",
         left: "50%",
         top: "50%",
         transform: `translate(calc(-50% + ${mousePosition.x * 2}px), calc(-50% + ${mousePosition.y * 2}px))`,
@@ -225,7 +247,7 @@ export function Hero() {
         
         {/* Large background number */}
         <div 
-          className="absolute right-0 top-1/2 -translate-y-1/2 text-[25vw] font-bold text-foreground/[0.02] leading-none pointer-events-none select-none hidden lg:block"
+          className="absolute right-0 top-1/2 -translate-y-1/2 text-[25vw] font-bold text-foreground/6 leading-none pointer-events-none select-none hidden lg:block"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(-50%) translateX(10%)" : "translateY(-50%) translateX(30%)",
@@ -244,7 +266,7 @@ export function Hero() {
           }}
         >
           <div 
-            className="w-px bg-gradient-to-b from-transparent via-accent/30 to-transparent flex-1"
+            className="w-px bg-linear-to-b from-transparent via-accent/50 to-transparent flex-1"
             style={{
               transform: isInView ? "scaleY(1)" : "scaleY(0)",
               transition: "transform 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s",
@@ -252,7 +274,7 @@ export function Hero() {
           />
           <span className="text-xs text-muted-foreground/50 tracking-widest py-4 [writing-mode:vertical-lr]">2026</span>
           <div 
-            className="w-px bg-gradient-to-b from-transparent via-accent/30 to-transparent flex-1"
+            className="w-px bg-linear-to-b from-transparent via-accent/50 to-transparent flex-1"
             style={{
               transform: isInView ? "scaleY(1)" : "scaleY(0)",
               transition: "transform 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s",
@@ -460,14 +482,6 @@ export function Hero() {
                 {social.name}
               </a>
             ))}
-          </div>
-
-          {/* Scroll indicator */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground/40 tracking-wider hidden sm:block">01 / 05</span>
-            <div className="w-12 h-px bg-border relative overflow-hidden">
-              <div className="absolute inset-0 bg-accent animate-pulse" style={{ width: "20%" }} />
-            </div>
           </div>
         </div>
       </div>

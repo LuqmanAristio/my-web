@@ -57,7 +57,7 @@ export function Experience() {
     >
       {/* Large background number */}
       <div 
-        className="absolute right-0 md:right-12 top-1/2 -translate-y-1/2 text-[20rem] md:text-[28rem] font-bold text-foreground/[0.02] select-none pointer-events-none leading-none"
+        className="absolute right-0 md:right-12 top-1/2 -translate-y-1/2 text-[20rem] md:text-[28rem] font-bold text-foreground/6 select-none pointer-events-none leading-none"
         style={{
           opacity: isInView ? 1 : 0,
           transform: isInView ? "translateY(-50%) translateX(0)" : "translateY(-50%) translateX(50px)",
