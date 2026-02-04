@@ -11,28 +11,58 @@ const projects = [
       "Property management and booking system with integrated payment gateway.",
     tags: ["Next.js", "Ruby on Rails", "Docker", "Node.js"],
     year: "Present",
-    liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio",
+    liveUrl: "https://nakula.com",
+    githubUrl: "#",
   },
   {
     id: 2,
+    title: "My Weather",
+    description:
+      "Real time weather forecast all around the world by location",
+    tags: ["Next.js", "Radix UI", "Tailwind", "Typescript"],
+    year: "2025",
+    liveUrl: "https://my-weather-beta-blush.vercel.app/",
+    githubUrl: "#",
+  },
+  {
+    id: 3,
+    title: "Iris",
+    description:
+      "Product landing page for gadget promotion and explanation",
+    tags: ["Next.js", "Radix UI", "Tailwind", "Typescript"],
+    year: "2025",
+    liveUrl: "https://iris-three-drab.vercel.app/",
+    githubUrl: "#",
+  },
+  {
+    id: 4,
+    title: "LinkedIt",
+    description:
+      "Similar to linktree, help user create single page for multiple link",
+    tags: ["Next.js", "Golang", "Fiber", "Typescript"],
+    year: "2025",
+    liveUrl: "#",
+    githubUrl: "https://github.com/LuqmanAristio/linkedit-next",
+  },
+  {
+    id: 5,
     title: "Melatec",
     description:
       "Music Similarities Checker with ML model integration for detecting similar music patterns.",
     tags: ["Flutter", "Django", "AI/ML", "GCP"],
     year: "2024",
     liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio",
+    githubUrl: "https://github.com/LuqmanAristio/melatec-frontend",
   },
   {
-    id: 3,
+    id: 6,
     title: "Presence",
     description:
       "Face Recognition Attendance System with custom AI model for accurate and efficient tracking.",
     tags: ["React", "Node.js", "AI/ML", "Python"],
-    year: "2023",
+    year: "2022",
     liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio",
+    githubUrl: "https://github.com/LuqmanAristio/presence-web-app",
   },
 ];
 
@@ -128,7 +158,7 @@ export function Projects() {
                   </span>
                 </div>
 
-                <div className="p-4">
+                <div className="p-4 z-50">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h3 className="text-lg font-semibold">
                       {project.title}
@@ -209,8 +239,12 @@ export function Projects() {
                     {project.title}
                   </h3>
                   <div className="flex gap-1">
-                    <Github className="w-4 h-4" />
-                    <ArrowUpRight className="w-4 h-4" />
+                    <a href={project.githubUrl}>
+                      <Github className="w-4 h-4" />
+                    </a>
+                    <a href={project.liveUrl}>
+                      <ArrowUpRight className="w-4 h-4" />
+                    </a>
                   </div>
                 </div>
 
