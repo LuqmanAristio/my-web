@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { Mail, MapPin, Send, Github, Linkedin, Instagram } from "lucide-react";
 import { useSectionInView } from "@/hooks/use-section-in-view";
+import { sendMail } from "@/lib/send-mail";
 
 const socialLinks = [
   { name: "GitHub", icon: Github, url: "https://github.com/LuqmanAristio" },
@@ -18,10 +19,55 @@ export function Contact() {
     message: "",
   });
   const { ref, isInView } = useSectionInView(0.3);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({
+    type: null,
+    message: "",
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+
+    try {
+      setLoading(true);
+      setStatus({ type: null, message: "" });
+
+      await sendMail({
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      });
+
+      setStatus({
+        type: "success",
+        message: "Thank you! Your message has been sent successfully.",
+      });
+    } catch (err) {
+      console.error(err);
+
+      setStatus({
+        type: "error",
+        message: "Failed to send your message. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+
+      setTimeout(() => {
+        setStatus({
+          type: null,
+          message: "",
+        });
+      }, 5000);
+    }
   };
 
   return (
@@ -66,9 +112,6 @@ export function Contact() {
                 transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s",
               }}
             >
-              <h3 className="text-2xl font-semibold mb-3 text-balance">
-                Let's work together
-              </h3>
               <p className="text-muted-foreground leading-relaxed">
                 Have a project in mind? Send me a message and let's create
                 something amazing together.
@@ -76,7 +119,7 @@ export function Contact() {
             </div>
 
             <div 
-              className="space-y-4"
+              className="space-y-4 hidden md:block"
               style={{
                 opacity: isInView ? 1 : 0,
                 transform: isInView ? "translateY(0)" : "translateY(30px)",
@@ -221,16 +264,25 @@ export function Contact() {
               />
             </div>
 
+            {status.type && (
+              <div
+                className={`rounded-xl border px-4 py-3 text-sm transition-all duration-300 ${
+                  status.type === "success"
+                    ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
+                    : "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
+                }`}
+              >
+                {status.message}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-foreground text-background font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-500 hover:scale-[1.02]"
-              style={{
-                opacity: isInView ? 1 : 0,
-                transform: isInView ? "translateY(0)" : "translateY(20px)",
-                transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s",
-              }}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-foreground text-background font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-500 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Message
+              {loading ? "Sending..." : "Send Message"}
+
               <Send className="w-4 h-4" />
             </button>
           </form>
