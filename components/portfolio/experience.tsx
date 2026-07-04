@@ -12,9 +12,10 @@ const experiences = [
     description:
       "Designing and developing scalable web applications and reservation systems using Ruby on Rails and Next.js.",
     highlights: [
-      "Integrated STAAH & SiteMinder channel managers",
-      "Optimized queries reducing response time 20-30%",
-      "Implemented DOKU payment gateway globally",
+      "Designed & developed customer relationship management features for membership and loyalty programs",
+      "Implemented a multi-inventory solution for centralized property and inventory management",
+      "Built and optimized a scalable booking system with real-time availability and pricing",
+      "Integrated DOKU payment gateway for secure and seamless online transactions"
     ],
   },
   {
@@ -26,24 +27,13 @@ const experiences = [
     description:
       "Developed front-end SPA using React and built backend systems with Node.js on Google Cloud",
     highlights: [
-      "Developed multiple SPA with React",
-      "Deployed apps on Google Cloud Platform",
-      "Top 3 best project award at XLKM 4",
+      "Developed multiple Single Page Applications (SPA) using React",
+      "Built responsive and reusable UI components with modern JavaScript",
+      "Integrated RESTful APIs into frontend applications",
+      "Deployed and maintained applications on Google Cloud Platform",
+      "Received Top 3 Best Project Award at XLKM 4"
     ],
-  },
-  {
-    id: 3,
-    role: "Bachelor of Computer Science",
-    company: "Udayana University",
-    location: "Bali, Indonesia",
-    period: "Sep 2020 - Jun 2024",
-    description:
-      "Studied Computer Science with focus on Programming, Data Structures, Databases, and AI.",
-    highlights: [
-      "GPA: 3.93/4.00 (146 credits)",
-      "Dicoding Web Development Certified",
-    ],
-  },
+  }
 ];
 
 export function Experience() {

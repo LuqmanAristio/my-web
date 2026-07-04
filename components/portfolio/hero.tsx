@@ -261,7 +261,7 @@ export function Hero() {
 
         {/* Left vertical line with year */}
         <div 
-          className="absolute left-8 md:left-16 top-0 h-full flex flex-col items-center"
+          className="absolute left-2 md:left-16 top-0 h-full flex flex-col items-center"
           style={{
             opacity: isInView ? 1 : 0,
             transition: "opacity 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
@@ -296,11 +296,11 @@ export function Hero() {
           <span className="text-xs text-muted-foreground/60 tracking-[0.3em] [writing-mode:vertical-lr] rotate-180">
             SCROLL TO EXPLORE
           </span>
-          <div className="w-px h-16 bg-gradient-to-b from-accent/50 to-transparent" />
+          <div className="w-px h-16 bg-linear-to-b from-accent/50 to-transparent" />
         </div>
 
         {/* Main content - Left aligned with offset */}
-        <div className="absolute left-[15%] md:left-[20%] top-1/2 -translate-y-1/2 max-w-4xl">
+        <div className="absolute left-[15%] md:left-[20%] top-1/2 -translate-y-1/2 max-w-4xl pr-6 md:pr-0">
           
           {/* Status badge - aligned left */}
           <div 
@@ -342,7 +342,7 @@ export function Hero() {
               </h1>
             </div>
             <div 
-              className="overflow-hidden"
+              className="overflow-hidden mt-2"
               style={{
                 opacity: isInView ? 1 : 0,
                 transition: "opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
@@ -373,7 +373,7 @@ export function Hero() {
                   transition: "transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
                 }}
               >
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/50">ARISTIO</span>
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-accent to-accent/50">ARISTIO</span>
               </h1>
             </div>
           </div>
@@ -408,7 +408,7 @@ export function Hero() {
               transition: "all 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.7s",
             }}
           >
-            Computer Science graduate from Udayana University with a passion for building scalable web applications. Currently crafting digital solutions at PT SUM Digital Konsultan.
+            Passionate about crafting scalable web applications that solve real business problems. With nearly 3 years of experience as a Full Stack Developer
           </p>
 
           {/* CTA Buttons - minimal design */}

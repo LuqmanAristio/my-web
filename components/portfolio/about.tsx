@@ -24,8 +24,8 @@ const expertise = [
 ];
 
 const highlights = [
-  { number: "3+", label: "Years Building" },
-  { number: "10+", label: "Projects Shipped" },
+  { number: "2+", label: "Years Building" },
+  { number: "6+", label: "Projects Completed" },
 ];
 
 export function About() {

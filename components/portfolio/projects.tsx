@@ -4,18 +4,18 @@ import { useSectionInView } from "@/hooks/use-section-in-view";
 import { ArrowUpRight, Github } from "lucide-react";
 
 const projects = [
+  // {
+  //   id: 1,
+  //   title: "Nakula",
+  //   description:
+  //     "Property management and booking system with integrated payment gateway.",
+  //   tags: ["Next.js", "Ruby on Rails", "Docker", "Node.js"],
+  //   year: "Present",
+  //   liveUrl: "https://nakula.com",
+  //   githubUrl: "#",
+  // },
   {
     id: 1,
-    title: "Nakula",
-    description:
-      "Property management and booking system with integrated payment gateway.",
-    tags: ["Next.js", "Ruby on Rails", "Docker", "Node.js"],
-    year: "Present",
-    liveUrl: "https://nakula.com",
-    githubUrl: "#",
-  },
-  {
-    id: 2,
     title: "My Weather",
     description:
       "Real time weather forecast all around the world by location",
@@ -25,7 +25,7 @@ const projects = [
     githubUrl: "#",
   },
   {
-    id: 3,
+    id: 2,
     title: "Iris",
     description:
       "Product landing page for gadget promotion and explanation",
@@ -35,7 +35,7 @@ const projects = [
     githubUrl: "#",
   },
   {
-    id: 4,
+    id: 3,
     title: "LinkedIt",
     description:
       "Similar to linktree, help user create single page for multiple link",
@@ -45,7 +45,7 @@ const projects = [
     githubUrl: "https://github.com/LuqmanAristio/linkedit-next",
   },
   {
-    id: 5,
+    id: 4,
     title: "Melatec",
     description:
       "Music Similarities Checker with ML model integration for detecting similar music patterns.",
@@ -55,7 +55,7 @@ const projects = [
     githubUrl: "https://github.com/LuqmanAristio/melatec-frontend",
   },
   {
-    id: 6,
+    id: 5,
     title: "Presence",
     description:
       "Face Recognition Attendance System with custom AI model for accurate and efficient tracking.",

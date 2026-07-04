@@ -134,7 +134,7 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       {/* ================= UI OVERLAY ================= */}
 
       {/* Logo MLA */}
-      <header className="fixed top-6 left-6 z-50">
+      <header className="fixed md:block hidden top-6 left-6 z-50">
         <button
           onClick={() => scrollToSection(0)}
           className="text-lg font-bold tracking-tight"
