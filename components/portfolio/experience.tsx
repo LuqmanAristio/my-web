@@ -79,7 +79,7 @@ export function Experience() {
       <div className="w-full max-w-105 md:max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <div
-          className="flex items-center gap-4 mb-10"
+          className="flex items-center gap-4 mb-6 md:mb-10"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(0)" : "translateY(20px)",
@@ -101,7 +101,7 @@ export function Experience() {
               gap-4
               overflow-x-auto
               snap-x snap-mandatory
-              pb-6
+              pb-4
             "
           >
             {experiences.map((exp) => (
@@ -113,7 +113,7 @@ export function Experience() {
                   rounded-2xl
                   bg-secondary/30
                   border border-border/50
-                  p-5
+                  p-4
                 "
               >
                 <div className="mb-3">
@@ -128,15 +128,15 @@ export function Experience() {
                   </p>
                 </div>
 
-                <span className="inline-block mb-3 text-xs font-mono text-muted-foreground px-3 py-1 rounded-full bg-secondary">
+                <span className="inline-block mb-2 text-xs font-mono text-muted-foreground px-3 py-1 rounded-full bg-secondary">
                   {exp.period}
                 </span>
 
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-3">
                   {exp.description}
                 </p>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   {exp.highlights.map((h, i) => (
                     <div
                       key={i}

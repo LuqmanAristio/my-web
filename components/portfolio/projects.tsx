@@ -78,7 +78,7 @@ export function Projects() {
         relative
         min-h-dvh md:h-dvh
         px-4 md:px-6
-        py-16 md:py-0
+        py-6 md:py-0
         flex
         items-center
         bg-secondary/20
@@ -113,7 +113,7 @@ export function Projects() {
       <div className="w-full md:max-w-6xl md:mx-auto relative z-10">
         {/* Header */}
         <div
-          className="flex items-center gap-4 mb-8 md:mb-12"
+          className="flex items-center gap-4 mb-6 md:mb-12"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(0)" : "translateY(20px)",
@@ -135,7 +135,7 @@ export function Projects() {
             overflow-x-auto
             snap-x snap-mandatory
             px-6
-            pb-6
+            pb-4
           ">
             {projects.map((project) => (
               <article
@@ -152,7 +152,7 @@ export function Projects() {
                 "
               >
                 {/* Image placeholder */}
-                <div className="h-36 bg-secondary flex items-center justify-center">
+                <div className="h-28 bg-secondary flex items-center justify-center">
                   <span className="text-4xl font-bold text-muted-foreground/10">
                     {project.year}
                   </span>

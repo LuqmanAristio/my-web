@@ -40,7 +40,7 @@ export function About() {
         relative
         min-h-dvh md:h-dvh
         px-4 md:px-6
-        py-16 md:py-0
+        py-6 md:py-0
         flex
         items-center
         overflow-hidden
@@ -73,13 +73,13 @@ export function About() {
       </div>
 
       <div className="w-full max-w-md mx-auto md:max-w-7xl md:mx-auto relative z-10">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-16 items-start lg:items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-16 items-start lg:items-center">
           
           {/* LEFT – INTRO */}
           <div className="lg:col-span-5">
             {/* Label */}
             <div
-              className="flex items-center gap-3 mb-6"
+              className="flex items-center gap-3 mb-4 md:mb-6"
               style={{
                 opacity: isInView ? 1 : 0,
                 transform: isInView
@@ -98,13 +98,13 @@ export function About() {
             {/* Heading */}
             <h2
               className="
-                text-3xl
-                sm:text-4xl
+                text-2xl
+                sm:text-3xl
                 md:text-5xl
                 lg:text-6xl
                 font-bold
                 leading-tight
-                mb-6
+                mb-4 md:mb-6
               "
               style={{
                 opacity: isInView ? 1 : 0,
@@ -129,7 +129,7 @@ export function About() {
                 sm:text-base
                 text-muted-foreground
                 leading-relaxed
-                mb-8
+                mb-5 md:mb-8
                 max-w-md
               "
               style={{
@@ -151,7 +151,7 @@ export function About() {
             <div className="flex gap-8">
               {highlights.map((item) => (
                 <div key={item.label}>
-                  <span className="block text-3xl font-bold">
+                  <span className="block text-2xl md:text-3xl font-bold">
                     {item.number}
                   </span>
                   <span className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -173,7 +173,7 @@ export function About() {
                 overflow-x-auto
                 snap-x snap-mandatory
                 px-6
-                pb-6
+                pb-4
                 justify-start
               ">
                 {expertise.map((item, index) => (
@@ -189,7 +189,7 @@ export function About() {
                       border-border/50
                     "
                   >
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-3 mb-2">
                       <span className="font-mono text-accent/50 text-sm">
                         0{index + 1}
                       </span>
@@ -198,7 +198,7 @@ export function About() {
                       </h3>
                     </div>
 
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-sm text-muted-foreground mb-3">
                       {item.description}
                     </p>
 
@@ -226,7 +226,7 @@ export function About() {
                 ))}
               </div>
 
-              <p className="mt-3 text-xs text-muted-foreground text-center">
+              <p className="mt-2 text-xs text-muted-foreground text-center">
                 Swipe to explore →
               </p>
             </div>
