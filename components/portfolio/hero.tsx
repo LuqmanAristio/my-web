@@ -4,6 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 import { useSectionInView } from "@/hooks/use-section-in-view";
 import { useFullPage } from "./fullpage-context";
 
+// Respect users who ask for less motion (accessibility + battery on mobile)
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return reduced;
+}
+
 // Text scramble effect hook
 function useTextScramble(text: string, isActive: boolean) {
   const [displayText, setDisplayText] = useState("");
@@ -201,6 +214,7 @@ export function Hero() {
   const { ref, isInView } = useSectionInView(0.5);
   const [showScramble, setShowScramble] = useState(false);
   const { scrollToSection } = useFullPage();
+  const reducedMotion = usePrefersReducedMotion();
 
   const scrambledText = useTextScramble("FULL STACK DEVELOPER", showScramble);
 
@@ -219,9 +233,13 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
+    // Cursor-follow glow is pointless on touch and wasteful with reduced motion.
+    if (reducedMotion) return;
+    if (window.matchMedia && !window.matchMedia("(pointer: fine)").matches)
+      return;
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [handleMouseMove]);
+  }, [handleMouseMove, reducedMotion]);
 
   return (
     <section
@@ -229,10 +247,17 @@ export function Hero() {
       id="hero"
       className="fullpage-section relative h-dvh overflow-hidden"
     >
-      <FloatingParticles />
-      <GlowingOrb mousePosition={mousePosition} />
-      <OrbitalRings />
-      <AnimatedGradientLine />
+      {!reducedMotion && (
+        <>
+          {/* Heaviest effects: desktop only to keep mobile smooth */}
+          <div className="hidden md:block">
+            <FloatingParticles />
+            <GlowingOrb mousePosition={mousePosition} />
+          </div>
+          <OrbitalRings />
+          <AnimatedGradientLine />
+        </>
+      )}
 
       {/* Grid overlay */}
       <div
@@ -316,7 +341,7 @@ export function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
               </span>
-              <span className="text-xs text-accent uppercase tracking-wider">Available</span>
+              <span className="text-xs text-accent uppercase tracking-wider">Available for Work</span>
             </div>
             <div className="h-px w-12 bg-border" />
             <span className="text-xs text-muted-foreground/60 tracking-wider">Based in Indonesia</span>
@@ -408,7 +433,7 @@ export function Hero() {
               transition: "all 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.7s",
             }}
           >
-            Passionate about crafting scalable web applications that solve real business problems. With nearly 3 years of experience as a Full Stack Developer
+            I build scalable web apps that solve real business problems — from real-time booking systems and payment integrations to CRM platforms. 2+ years shipping production software as a Full Stack Developer.
           </p>
 
           {/* CTA Buttons - minimal design */}
@@ -422,13 +447,9 @@ export function Hero() {
           >
             <button
               onClick={() => scrollToSection(2)}
-              className="group relative flex items-center gap-3 text-foreground font-medium"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-foreground text-background px-6 py-3 text-sm font-medium transition-all duration-500 hover:bg-accent hover:text-accent-foreground"
             >
-              <span className="relative">
-                View Work
-                <span className="absolute -bottom-1 left-0 w-full h-px bg-foreground scale-x-100 group-hover:scale-x-0 transition-transform duration-500 origin-right" />
-                <span className="absolute -bottom-1 left-0 w-full h-px bg-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              </span>
+              View Work
               <svg
                 className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300"
                 fill="none"
@@ -440,12 +461,10 @@ export function Hero() {
                 />
               </svg>
             </button>
-            
-            <span className="text-muted-foreground/30">|</span>
-            
+
             <button
               onClick={() => scrollToSection(4)} // Contact
-              className="group relative text-muted-foreground hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-300"
             >
               Get in Touch
             </button>

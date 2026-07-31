@@ -118,7 +118,16 @@ export function Contact() {
               </p>
             </div>
 
-            <div 
+            {/* Compact email — visible on mobile, where the detail panel below is hidden */}
+            <a
+              href="mailto:hello@itsluqman.com"
+              className="md:hidden inline-flex items-center gap-2 text-sm font-medium text-accent"
+            >
+              <Mail className="w-4 h-4" />
+              hello@itsluqman.com
+            </a>
+
+            <div
               className="space-y-4 hidden md:block"
               style={{
                 opacity: isInView ? 1 : 0,

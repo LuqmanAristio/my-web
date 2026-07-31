@@ -3,7 +3,45 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ================= LIGHT THEME (default :root) ================= */
 :root {
+  --background: oklch(0.985 0.003 260);
+  --foreground: oklch(0.18 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 260);
+  --primary: oklch(0.2 0.01 260);
+  --primary-foreground: oklch(0.985 0.003 260);
+  --secondary: oklch(0.955 0.006 260);
+  --secondary-foreground: oklch(0.2 0.01 260);
+  --muted: oklch(0.955 0.006 260);
+  --muted-foreground: oklch(0.45 0.01 260);
+  --accent: oklch(0.62 0.13 175);
+  --accent-foreground: oklch(0.99 0.01 175);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0.003 260);
+  --border: oklch(0.9 0.006 260);
+  --input: oklch(0.9 0.006 260);
+  --ring: oklch(0.62 0.13 175);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.18 0.01 260);
+  --sidebar-primary: oklch(0.62 0.13 175);
+  --sidebar-primary-foreground: oklch(0.99 0.01 175);
+  --sidebar-accent: oklch(0.955 0.006 260);
+  --sidebar-accent-foreground: oklch(0.2 0.01 260);
+  --sidebar-border: oklch(0.9 0.006 260);
+  --sidebar-ring: oklch(0.62 0.13 175);
+}
+
+/* ================= DARK THEME ================= */
+.dark {
   --background: oklch(0.12 0.008 260);
   --foreground: oklch(0.98 0 0);
   --card: oklch(0.16 0.008 260);
@@ -28,7 +66,6 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
   --sidebar: oklch(0.16 0.008 260);
   --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-primary: oklch(0.78 0.18 175);
@@ -87,27 +124,6 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Ultra smooth fullpage scroll */
-.fullpage-container {
-  scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior: none;
-}
-
-.fullpage-container::-webkit-scrollbar {
-  display: none;
-}
-
-.fullpage-container {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.fullpage-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 /* Smooth section content animations */

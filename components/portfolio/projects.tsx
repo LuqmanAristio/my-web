@@ -163,13 +163,29 @@ export function Projects() {
                     <h3 className="text-lg font-semibold">
                       {project.title}
                     </h3>
-                    <div className="flex gap-1">
-                      <a href={project.githubUrl}>
-                        <Github className="w-4 h-4" />
-                      </a>
-                      <a href={project.liveUrl}>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </a>
+                    <div className="flex gap-2">
+                      {project.githubUrl && project.githubUrl !== "#" && (
+                        <a
+                          href={project.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${project.title} source code on GitHub`}
+                          className="text-muted-foreground hover:text-accent transition-colors"
+                        >
+                          <Github className="w-4 h-4" />
+                        </a>
+                      )}
+                      {project.liveUrl && project.liveUrl !== "#" && (
+                        <a
+                          href={project.liveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Open ${project.title} live site`}
+                          className="text-muted-foreground hover:text-accent transition-colors"
+                        >
+                          <ArrowUpRight className="w-4 h-4" />
+                        </a>
+                      )}
                     </div>
                   </div>
 
@@ -238,13 +254,29 @@ export function Projects() {
                   <h3 className="text-lg font-semibold group-hover:text-accent">
                     {project.title}
                   </h3>
-                  <div className="flex gap-1">
-                    <a href={project.githubUrl}>
-                      <Github className="w-4 h-4" />
-                    </a>
-                    <a href={project.liveUrl}>
-                      <ArrowUpRight className="w-4 h-4" />
-                    </a>
+                  <div className="flex gap-2">
+                    {project.githubUrl && project.githubUrl !== "#" && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${project.title} source code on GitHub`}
+                        className="text-muted-foreground hover:text-accent transition-colors"
+                      >
+                        <Github className="w-4 h-4" />
+                      </a>
+                    )}
+                    {project.liveUrl && project.liveUrl !== "#" && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${project.title} live site`}
+                        className="text-muted-foreground hover:text-accent transition-colors"
+                      >
+                        <ArrowUpRight className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 </div>
 
