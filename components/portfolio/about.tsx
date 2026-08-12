@@ -172,8 +172,6 @@ export function About() {
                 flex
                 gap-4
                 overflow-x-auto
-                snap-x snap-mandatory
-                scroll-pl-4
                 -mx-4 px-4
                 pb-4
                 justify-start
@@ -183,7 +181,6 @@ export function About() {
                     key={item.category}
                     className="
                       w-[85vw] shrink-0
-                      snap-start
                       p-4
                       rounded-2xl
                       bg-secondary/30

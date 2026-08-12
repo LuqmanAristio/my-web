@@ -101,8 +101,6 @@ export function Experience() {
               flex
               gap-4
               overflow-x-auto
-              snap-x snap-mandatory
-              scroll-pl-4
               -mx-4 px-4
               pb-4
             "
@@ -112,7 +110,6 @@ export function Experience() {
                 key={exp.id}
                 className="
                   w-[85vw] shrink-0
-                  snap-start
                   rounded-2xl
                   bg-secondary/30
                   border border-border/50

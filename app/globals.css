@@ -146,19 +146,22 @@
    stacks on top of our transform and nothing short of a reload undoes it.
    A clipped box has no scroll position to leak.
 
-   touch-action: pan-x leaves horizontal panning to the browser (the mobile
-   card carousels scroll natively, with momentum and snapping) and keeps
-   vertical panning — plus pull-to-refresh — for us. */
+   touch-action: none because the wrapper drives both axes itself, including
+   the horizontal card carousels. Handing horizontal panning to the browser
+   (pan-x) looked tidier but the browser latches a gesture's pan direction at
+   its very first movement: a swipe that opened with a slight vertical roll —
+   which is how a thumb normally starts — was rejected outright, and no amount
+   of later sideways travel would move the cards. */
 .fullpage-viewport {
   overflow: hidden;
   overflow: clip;
-  touch-action: pan-x;
+  touch-action: none;
 }
 
-/* Horizontal card carousels (mobile): keep the native scroll, lose the bar. */
+/* Horizontal card carousels (mobile). No CSS scroll-snap: mandatory snapping
+   fights a scrollLeft driven by hand, so the wrapper snaps these in JS. */
 .hscroll {
   overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

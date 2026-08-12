@@ -134,8 +134,6 @@ export function Projects() {
             flex
             gap-4
             overflow-x-auto
-            snap-x snap-mandatory
-            scroll-pl-4
             -mx-4 px-4
             pb-4
           ">
@@ -145,7 +143,6 @@ export function Projects() {
                 className="
                   w-[85vw]
                   shrink-0
-                  snap-start
                   rounded-2xl
                   bg-card
                   border

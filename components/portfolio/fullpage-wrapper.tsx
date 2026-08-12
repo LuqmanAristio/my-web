@@ -33,6 +33,16 @@ const SWIPE_DISTANCE_RATIO = 0.14; // fraction of viewport that counts as a deli
 const SWIPE_VELOCITY = 0.3; // px/ms flick threshold (fast short flicks still advance)
 const EDGE_RESISTANCE = 0.35; // rubber-band damping past the first / last section
 const AXIS_LOCK_PX = 12; // finger travel before we commit a gesture to one axis
+const CAROUSEL_LOCK_PX = 30; // …and the taller bar a swipe must clear to take
+// the page over instead of the card carousel it started in. A thumb rarely
+// slides straight: it often rolls a little vertically before moving sideways,
+// and at 12px that roll read as a page swipe.
+const CAROUSEL_LOCK_RATIO = 1.5; // vertical dominance required inside a carousel
+// px/ms flick that advances one card. Deliberately forgiving: touchmove fires
+// every 8-16ms on a healthy phone but can stretch past 30ms on a slow one, and
+// the same flick then reads a third as fast. FLICK_IDLE_MS already discards a
+// finger that came to rest, so a low bar here costs little.
+const CARD_FLICK_VELOCITY = 0.15;
 const FLICK_IDLE_MS = 120; // finger parked longer than this → not a flick, distance decides
 const STOP_EPSILON = 24; // overflow smaller than this isn't worth an extra stop
 const STOP_STEP_RATIO = 0.9; // how far one intra-section step travels (× viewport)
@@ -81,11 +91,15 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
     id: -1,
     tracking: false,
     axis: null as null | "x" | "y",
+    carousel: null as HTMLElement | null,
+    startScrollLeft: 0,
     startX: 0,
     startY: 0,
     startTime: 0,
+    lastX: 0,
     lastY: 0,
     lastTime: 0,
+    prevX: 0,
     prevY: 0,
     prevTime: 0,
   });
@@ -329,9 +343,76 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       return el.scrollHeight > el.clientHeight + 1;
     };
 
+    // The card carousel, if this touch landed in one.
+    const findCarousel = (target: EventTarget | null) => {
+      let el = target as HTMLElement | null;
+      while (el && el !== containerRef.current) {
+        if (el.scrollWidth > el.clientWidth + 1) {
+          const overflowX = getComputedStyle(el).overflowX;
+          if (overflowX === "auto" || overflowX === "scroll") return el;
+        }
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    // Settle a carousel on a card once the finger lets go. We snap in JS rather
+    // than with CSS scroll-snap because mandatory snapping fights a scrollLeft
+    // driven by hand — it would re-snap on every frame of the drag.
+    const snapCarousel = (
+      el: HTMLElement,
+      velocityX: number,
+      startLeft: number
+    ) => {
+      const cards = Array.from(el.children) as HTMLElement[];
+      if (!cards.length) return;
+
+      const padLeft = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+      const elLeft = el.getBoundingClientRect().left;
+      const current = el.scrollLeft;
+      const maxLeft = Math.max(el.scrollWidth - el.clientWidth, 0);
+
+      // The scrollLeft that would park each card against the content edge.
+      const targets = cards.map(
+        (card) =>
+          card.getBoundingClientRect().left - elLeft + current - padLeft
+      );
+
+      const nearestTo = (value: number) => {
+        let index = 0;
+        let bestDistance = Infinity;
+        targets.forEach((left, i) => {
+          const distance = Math.abs(left - value);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            index = i;
+          }
+        });
+        return index;
+      };
+
+      // A flick is measured from the card it left, not from where the finger
+      // happened to stop: a short quick swipe travels well under half a card,
+      // so judging by the finger's last position alone would snap it straight
+      // back and the flick would feel ignored.
+      let index = nearestTo(current);
+      if (velocityX <= -CARD_FLICK_VELOCITY) {
+        index = Math.max(index, nearestTo(startLeft) + 1);
+      } else if (velocityX >= CARD_FLICK_VELOCITY) {
+        index = Math.min(index, nearestTo(startLeft) - 1);
+      }
+      index = clamp(index, 0, cards.length - 1);
+
+      el.scrollTo({
+        left: clamp(targets[index], 0, maxLeft),
+        behavior: reducedMotion.current ? "auto" : "smooth",
+      });
+    };
+
     const stopTracking = () => {
       touch.current.tracking = false;
       touch.current.axis = null;
+      touch.current.carousel = null;
     };
 
     // Give the panel back to its current stop when a gesture is interrupted
@@ -357,17 +438,22 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       }
 
       const now = performance.now();
+      const carousel = findCarousel(t.target);
       touch.current = {
         id: t.identifier,
         tracking: true,
         // Axis is undecided until the finger has actually travelled: a tap
         // (or the start of a horizontal card swipe) must not grab the page.
         axis: null,
+        carousel,
+        startScrollLeft: carousel?.scrollLeft ?? 0,
         startX: t.clientX,
         startY: t.clientY,
         startTime: now,
+        lastX: t.clientX,
         lastY: t.clientY,
         lastTime: now,
+        prevX: t.clientX,
         prevY: t.clientY,
         prevTime: now,
       };
@@ -385,44 +471,78 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       if (t.identifier !== st.id) return;
 
       if (!st.axis) {
-        const dx = t.clientX - st.startX;
-        const dy = t.clientY - st.startY;
-        if (Math.abs(dx) < AXIS_LOCK_PX && Math.abs(dy) < AXIS_LOCK_PX) return;
+        const dx = Math.abs(t.clientX - st.startX);
+        const dy = Math.abs(t.clientY - st.startY);
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-          // Horizontal intent → hands off, the browser scrolls the carousel
-          // this touch started in (touch-action: pan-x on the viewport).
-          stopTracking();
-          return;
+        if (st.carousel) {
+          // Inside a carousel, paging the site needs a deliberate and clearly
+          // vertical swipe; anything else scrolls the cards. An undecided
+          // gesture waits for more travel instead of guessing from the first
+          // few pixels, which is where a rolling thumb used to be misread.
+          if (dy >= CAROUSEL_LOCK_PX && dy > dx * CAROUSEL_LOCK_RATIO) {
+            st.axis = "y";
+          } else if (dx >= AXIS_LOCK_PX) {
+            st.axis = "x";
+          } else {
+            return;
+          }
+        } else {
+          if (dx < AXIS_LOCK_PX && dy < AXIS_LOCK_PX) return;
+          if (dx > dy) {
+            // Nothing to scroll sideways here — let the gesture fall away
+            // rather than paging the site on a horizontal swipe.
+            stopTracking();
+            return;
+          }
+          st.axis = "y";
         }
 
-        st.axis = "y";
-        isDragging.current = true;
-        // Grab wherever the panel currently is (interrupts any running snap →
-        // a second swipe never has to wait for the first animation to finish).
-        isAnimating.current = false;
-        dragBaseY.current = currentY.current;
-        // Rebase on the current finger position so the axis-lock deadzone
-        // doesn't show up as a jump.
-        dragStartY.current = t.clientY;
-        ensureRunning();
+        if (st.axis === "y") {
+          isDragging.current = true;
+          // Grab wherever the panel currently is (interrupts any running snap
+          // → a second swipe never waits for the first animation to finish).
+          isAnimating.current = false;
+          dragBaseY.current = currentY.current;
+          // Rebase on the current finger position so the axis-lock deadzone
+          // doesn't show up as a jump.
+          dragStartY.current = t.clientY;
+          ensureRunning();
+        }
       }
 
-      e.preventDefault(); // kill native overscroll / pull-to-refresh
-
-      const delta = dragStartY.current - t.clientY;
-      let raw = dragBaseY.current + delta;
-
-      const min = stops.current[0]?.y ?? 0;
-      const max = stops.current[maxIndexRef.current]?.y ?? 0;
-      if (raw < min) raw = min + (raw - min) * EDGE_RESISTANCE;
-      else if (raw > max) raw = max + (raw - max) * EDGE_RESISTANCE;
-
-      currentY.current = raw;
+      e.preventDefault(); // we own both axes now; no native panning to fight
 
       const now = performance.now();
+
+      if (st.axis === "x") {
+        // Drive the carousel by hand. Leaving this to the browser was the
+        // remaining reason cards refused to move: with touch-action: pan-x it
+        // latches the pan direction at the start of a gesture, so a swipe that
+        // opened with any vertical movement was discarded outright and no
+        // later horizontal travel could revive it.
+        const el = st.carousel!;
+        const maxLeft = Math.max(el.scrollWidth - el.clientWidth, 0);
+        el.scrollLeft = clamp(
+          st.startScrollLeft - (t.clientX - st.startX),
+          0,
+          maxLeft
+        );
+      } else {
+        const delta = dragStartY.current - t.clientY;
+        let raw = dragBaseY.current + delta;
+
+        const min = stops.current[0]?.y ?? 0;
+        const max = stops.current[maxIndexRef.current]?.y ?? 0;
+        if (raw < min) raw = min + (raw - min) * EDGE_RESISTANCE;
+        else if (raw > max) raw = max + (raw - max) * EDGE_RESISTANCE;
+
+        currentY.current = raw;
+      }
+
+      st.prevX = st.lastX;
       st.prevY = st.lastY;
       st.prevTime = st.lastTime;
+      st.lastX = t.clientX;
       st.lastY = t.clientY;
       st.lastTime = now;
     };
@@ -434,19 +554,27 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       const t = Array.from(e.changedTouches).find((c) => c.identifier === st.id);
       if (!t) return; // some other finger lifted — keep tracking ours
 
+      const now = performance.now();
+      // Velocity from the last sampled segment, so a slow drag that ends in a
+      // flick still advances — and a finger parked before lifting doesn't.
+      const idle = now - st.lastTime;
+      const sampleDt = Math.max(st.lastTime - st.prevTime, 1);
+      const flick = (from: number, to: number) =>
+        idle > FLICK_IDLE_MS ? 0 : (to - from) / sampleDt;
+
+      if (st.axis === "x" && st.carousel) {
+        snapCarousel(st.carousel, flick(st.prevX, st.lastX), st.startScrollLeft);
+        stopTracking();
+        return;
+      }
+
       const wasDragging = st.axis === "y" && isDragging.current;
       stopTracking();
       if (!wasDragging) return;
       isDragging.current = false;
 
-      const now = performance.now();
       const totalDelta = st.startY - t.clientY;
-      // Velocity from the last sampled segment, so a slow drag that ends in a
-      // flick still advances — and a finger parked before lifting doesn't.
-      const idle = now - st.lastTime;
-      const sampleDt = Math.max(st.lastTime - st.prevTime, 1);
-      const velocity =
-        idle > FLICK_IDLE_MS ? 0 : (st.prevY - st.lastY) / sampleDt;
+      const velocity = flick(st.lastY, st.prevY);
 
       const vh = outerRef.current?.clientHeight || window.innerHeight;
       const distThreshold = vh * SWIPE_DISTANCE_RATIO;
