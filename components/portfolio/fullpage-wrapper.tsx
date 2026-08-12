@@ -32,25 +32,36 @@ const WHEEL_COOLDOWN = 120; // ms buffer to swallow trackpad inertia after a ste
 const SWIPE_DISTANCE_RATIO = 0.14; // fraction of viewport that counts as a deliberate swipe
 const SWIPE_VELOCITY = 0.3; // px/ms flick threshold (fast short flicks still advance)
 const EDGE_RESISTANCE = 0.35; // rubber-band damping past the first / last section
+const AXIS_LOCK_PX = 12; // finger travel before we commit a gesture to one axis
+const FLICK_IDLE_MS = 120; // finger parked longer than this → not a flick, distance decides
+const STOP_EPSILON = 24; // overflow smaller than this isn't worth an extra stop
+const STOP_STEP_RATIO = 0.9; // how far one intra-section step travels (× viewport)
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(v, max));
 
+// A snap position. Sections shorter than the viewport contribute exactly one
+// stop; taller ones (long content on small phones) get extra stops so nothing
+// below the fold is unreachable.
+type Stop = { y: number; section: number };
+
 export function FullPageWrapper({ children }: FullPageWrapperProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // activeSection state drives the nav UI; activeIndexRef is the source of
-  // truth read inside event handlers so rapid input never reads a stale value.
+  // activeSection state drives the nav UI; the refs are the source of truth
+  // read inside event handlers so rapid input never sees a stale value.
   const [activeSection, setActiveSection] = useState(0);
-  const activeIndexRef = useRef(0);
-  const maxIndexRef = useRef(sections.length - 1);
+  const activeSectionRef = useRef(0);
+  const activeStopRef = useRef(0);
+  const maxIndexRef = useRef(0);
 
-  // Real pixel offset of each section's top, measured from the DOM so the
-  // transform always matches the actual layout (handles min-h-dvh sections and
-  // mobile toolbar height changes without leaving a sliver of the next panel).
-  const offsets = useRef<number[]>([]);
+  // Real pixel offsets measured from the DOM so the transform always matches
+  // the actual layout (handles min-h-dvh sections and mobile toolbar height
+  // changes without leaving a sliver of the next panel).
+  const stops = useRef<Stop[]>([{ y: 0, section: 0 }]);
+  const firstStop = useRef<number[]>([0]);
 
   // Animation / drag state (refs → no re-render per frame).
   const currentY = useRef(0);
@@ -61,10 +72,23 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   const isAnimating = useRef(false);
 
   const isDragging = useRef(false);
-  const skipDrag = useRef(false);
   const dragStartY = useRef(0);
-  const dragStartTime = useRef(0);
   const dragBaseY = useRef(0);
+
+  // Single-touch bookkeeping. Tracking the identifier means a second finger
+  // landing mid-swipe can't hijack or strand the gesture.
+  const touch = useRef({
+    id: -1,
+    tracking: false,
+    axis: null as null | "x" | "y",
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    lastY: 0,
+    lastTime: 0,
+    prevY: 0,
+    prevTime: 0,
+  });
 
   const wheelLockUntil = useRef(0);
   const reducedMotion = useRef(false);
@@ -115,16 +139,20 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   }, [frame]);
 
   /* ================= NAVIGATION ================= */
-  const setActive = useCallback((index: number) => {
-    activeIndexRef.current = index;
-    setActiveSection(index);
+  const setActive = useCallback((stopIndex: number) => {
+    activeStopRef.current = stopIndex;
+    const section = stops.current[stopIndex]?.section ?? 0;
+    if (section === activeSectionRef.current) return;
+
+    activeSectionRef.current = section;
+    setActiveSection(section);
     // Keep the URL in sync so sections are deep-linkable / shareable
     // (e.g. /#projects) without polluting browser history.
     if (typeof window !== "undefined") {
-      const id = sections[index]?.id;
+      const id = sections[section]?.id;
       if (id) {
         const url =
-          index === 0
+          section === 0
             ? window.location.pathname + window.location.search
             : `#${id}`;
         window.history.replaceState(null, "", url);
@@ -133,9 +161,9 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   }, []);
 
   const animateTo = useCallback(
-    (index: number, duration: number) => {
-      const target = clamp(index, 0, maxIndexRef.current);
-      const to = offsets.current[target] ?? 0;
+    (stopIndex: number, duration: number) => {
+      const target = clamp(stopIndex, 0, maxIndexRef.current);
+      const to = stops.current[target]?.y ?? 0;
 
       if (reducedMotion.current) {
         currentY.current = to;
@@ -156,26 +184,61 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   );
 
   const scrollToSection = useCallback(
-    (index: number) => animateTo(index, NAV_DURATION),
+    (index: number) => {
+      const stopIndex = firstStop.current[index];
+      if (stopIndex === undefined) return;
+      animateTo(stopIndex, NAV_DURATION);
+    },
     [animateTo]
   );
 
   /* ================= MEASURE LAYOUT ================= */
   const measure = useCallback(() => {
     const el = containerRef.current;
-    if (!el) return;
+    const outer = outerRef.current;
+    if (!el || !outer) return;
 
     const kids = Array.from(el.children) as HTMLElement[];
     if (!kids.length) return;
 
-    offsets.current = kids.map((k) => k.offsetTop);
-    maxIndexRef.current = kids.length - 1;
+    const vh = outer.clientHeight || window.innerHeight;
+    const next: Stop[] = [];
+    const firsts: number[] = [];
 
-    // Re-align to the current section (unless the user is mid-gesture).
+    kids.forEach((kid, i) => {
+      const top = kid.offsetTop;
+      const lastReachable = top + kid.offsetHeight - vh;
+
+      firsts.push(next.length);
+      next.push({ y: top, section: i });
+
+      // Extra stops for a section that outgrows the viewport, so its lower
+      // half is reachable instead of being skipped over to the next section.
+      let y = top;
+      while (lastReachable - y > STOP_EPSILON) {
+        y = Math.min(y + vh * STOP_STEP_RATIO, lastReachable);
+        next.push({ y, section: i });
+      }
+    });
+
+    // Preserve the reader's place across a re-measure (font load, viewport
+    // resize, a form message appearing) instead of snapping back to the top.
+    const section = activeSectionRef.current;
+    const withinSection =
+      activeStopRef.current - (firstStop.current[section] ?? 0);
+
+    stops.current = next;
+    firstStop.current = firsts;
+    maxIndexRef.current = next.length - 1;
+
+    const base = firsts[section] ?? 0;
+    const lastOfSection = (firsts[section + 1] ?? next.length) - 1;
+    const restored = clamp(base + withinSection, base, lastOfSection);
+    activeStopRef.current = restored;
+
+    // Re-align (unless the user is mid-gesture).
     if (!isDragging.current && !isAnimating.current) {
-      const y = offsets.current[
-        Math.min(activeIndexRef.current, maxIndexRef.current)
-      ] ?? 0;
+      const y = next[restored]?.y ?? 0;
       currentY.current = y;
       applyTransform(y);
     }
@@ -186,15 +249,20 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
+    measure();
+
     // Honor an incoming deep link (e.g. /#projects) on first load.
     const hash = window.location.hash.replace("#", "");
     const initialIndex = sections.findIndex((s) => s.id === hash);
     if (initialIndex > 0) {
-      activeIndexRef.current = initialIndex;
+      const stopIndex = firstStop.current[initialIndex] ?? 0;
+      activeStopRef.current = stopIndex;
+      activeSectionRef.current = initialIndex;
       setActiveSection(initialIndex);
+      currentY.current = stops.current[stopIndex]?.y ?? 0;
+      applyTransform(currentY.current);
     }
 
-    measure();
     // Measure again after fonts/images settle layout.
     const raf = requestAnimationFrame(measure);
     const onLoad = () => measure();
@@ -223,6 +291,10 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
   /* ================= WHEEL (desktop / trackpad) ================= */
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
+      // Sideways trackpad gestures belong to whatever horizontal scroller is
+      // under the cursor, not to the page.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
       e.preventDefault();
       const now = performance.now();
       if (now < wheelLockUntil.current) return;
@@ -231,7 +303,7 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
 
       wheelLockUntil.current = now + WHEEL_DURATION + WHEEL_COOLDOWN;
       animateTo(
-        activeIndexRef.current + (e.deltaY > 0 ? 1 : -1),
+        activeStopRef.current + (e.deltaY > 0 ? 1 : -1),
         WHEEL_DURATION
       );
     };
@@ -242,53 +314,140 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
 
   /* ================= TOUCH (mobile) ================= */
   useEffect(() => {
-    const isFormTarget = (target: EventTarget | null) =>
-      !!(target as HTMLElement | null)?.closest?.(
-        "input, textarea, [data-no-drag]"
-      );
+    // Only hand a vertical gesture to a field that can genuinely consume it —
+    // a textarea with lines hidden below the fold. Skipping every form control
+    // outright made a swipe starting on the contact textarea do nothing at
+    // all, which is indistinguishable from the page being frozen. Taps and
+    // focus are unaffected either way: they never reach the axis-lock
+    // threshold, so the field still receives them.
+    const ownsVerticalTouch = (target: EventTarget | null) => {
+      const el = (target as HTMLElement | null)?.closest?.(
+        "textarea, [contenteditable='true'], [data-no-drag]"
+      ) as HTMLElement | null;
+      if (!el) return false;
+      if (el.hasAttribute("data-no-drag")) return true;
+      return el.scrollHeight > el.clientHeight + 1;
+    };
+
+    const stopTracking = () => {
+      touch.current.tracking = false;
+      touch.current.axis = null;
+    };
+
+    // Give the panel back to its current stop when a gesture is interrupted
+    // (second finger, system gesture, call notification…). Without this the
+    // panel would be stranded wherever the finger left it.
+    const releaseDrag = () => {
+      if (isDragging.current) {
+        isDragging.current = false;
+        animateTo(activeStopRef.current, SNAPBACK_DURATION);
+      }
+      stopTracking();
+    };
 
     const onTouchStart = (e: TouchEvent) => {
-      // Let form fields, links and buttons behave natively.
-      if (isFormTarget(e.target)) {
-        skipDrag.current = true;
+      if (e.touches.length > 1) {
+        releaseDrag();
         return;
       }
-      skipDrag.current = false;
-      isDragging.current = true;
-      // Grab wherever the panel currently is (interrupts any running snap →
-      // a second swipe never has to wait for the first animation to finish).
-      isAnimating.current = false;
-      dragBaseY.current = currentY.current;
-      dragStartY.current = e.touches[0].clientY;
-      dragStartTime.current = performance.now();
-      ensureRunning();
+      const t = e.touches[0];
+      if (ownsVerticalTouch(t.target)) {
+        stopTracking();
+        return;
+      }
+
+      const now = performance.now();
+      touch.current = {
+        id: t.identifier,
+        tracking: true,
+        // Axis is undecided until the finger has actually travelled: a tap
+        // (or the start of a horizontal card swipe) must not grab the page.
+        axis: null,
+        startX: t.clientX,
+        startY: t.clientY,
+        startTime: now,
+        lastY: t.clientY,
+        lastTime: now,
+        prevY: t.clientY,
+        prevTime: now,
+      };
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (skipDrag.current || !isDragging.current) return;
+      const st = touch.current;
+      if (!st.tracking) return;
+      if (e.touches.length > 1) {
+        releaseDrag();
+        return;
+      }
+
+      const t = e.touches[0];
+      if (t.identifier !== st.id) return;
+
+      if (!st.axis) {
+        const dx = t.clientX - st.startX;
+        const dy = t.clientY - st.startY;
+        if (Math.abs(dx) < AXIS_LOCK_PX && Math.abs(dy) < AXIS_LOCK_PX) return;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          // Horizontal intent → hands off, the browser scrolls the carousel
+          // this touch started in (touch-action: pan-x on the viewport).
+          stopTracking();
+          return;
+        }
+
+        st.axis = "y";
+        isDragging.current = true;
+        // Grab wherever the panel currently is (interrupts any running snap →
+        // a second swipe never has to wait for the first animation to finish).
+        isAnimating.current = false;
+        dragBaseY.current = currentY.current;
+        // Rebase on the current finger position so the axis-lock deadzone
+        // doesn't show up as a jump.
+        dragStartY.current = t.clientY;
+        ensureRunning();
+      }
+
       e.preventDefault(); // kill native overscroll / pull-to-refresh
-      const delta = dragStartY.current - e.touches[0].clientY;
+
+      const delta = dragStartY.current - t.clientY;
       let raw = dragBaseY.current + delta;
 
-      const min = offsets.current[0] ?? 0;
-      const max = offsets.current[maxIndexRef.current] ?? 0;
+      const min = stops.current[0]?.y ?? 0;
+      const max = stops.current[maxIndexRef.current]?.y ?? 0;
       if (raw < min) raw = min + (raw - min) * EDGE_RESISTANCE;
       else if (raw > max) raw = max + (raw - max) * EDGE_RESISTANCE;
 
       currentY.current = raw;
+
+      const now = performance.now();
+      st.prevY = st.lastY;
+      st.prevTime = st.lastTime;
+      st.lastY = t.clientY;
+      st.lastTime = now;
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (skipDrag.current) {
-        skipDrag.current = false;
-        return;
-      }
-      if (!isDragging.current) return;
+      const st = touch.current;
+      if (!st.tracking) return;
+
+      const t = Array.from(e.changedTouches).find((c) => c.identifier === st.id);
+      if (!t) return; // some other finger lifted — keep tracking ours
+
+      const wasDragging = st.axis === "y" && isDragging.current;
+      stopTracking();
+      if (!wasDragging) return;
       isDragging.current = false;
 
-      const totalDelta = dragStartY.current - e.changedTouches[0].clientY;
-      const elapsed = Math.max(performance.now() - dragStartTime.current, 1);
-      const velocity = totalDelta / elapsed; // px/ms
+      const now = performance.now();
+      const totalDelta = st.startY - t.clientY;
+      // Velocity from the last sampled segment, so a slow drag that ends in a
+      // flick still advances — and a finger parked before lifting doesn't.
+      const idle = now - st.lastTime;
+      const sampleDt = Math.max(st.lastTime - st.prevTime, 1);
+      const velocity =
+        idle > FLICK_IDLE_MS ? 0 : (st.prevY - st.lastY) / sampleDt;
+
       const vh = outerRef.current?.clientHeight || window.innerHeight;
       const distThreshold = vh * SWIPE_DISTANCE_RATIO;
 
@@ -297,23 +456,25 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       else if (totalDelta < -distThreshold || velocity < -SWIPE_VELOCITY)
         dir = -1;
 
-      // One section per gesture → predictable, no accidental multi-jumps.
+      // One stop per gesture → predictable, no accidental multi-jumps.
       animateTo(
-        activeIndexRef.current + dir,
+        activeStopRef.current + dir,
         dir === 0 ? SNAPBACK_DURATION : TOUCH_DURATION
       );
     };
 
+    const onTouchCancel = () => releaseDrag();
+
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchCancel, { passive: true });
 
     return () => {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("touchcancel", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchCancel);
     };
   }, [animateTo, ensureRunning]);
 
@@ -330,7 +491,7 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
         return; // don't steal keys while typing in the contact form
       }
 
-      let target = activeIndexRef.current;
+      let target = activeStopRef.current;
       switch (e.key) {
         case "ArrowDown":
         case "PageDown":
@@ -365,12 +526,69 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
     const onHashChange = () => {
       const id = window.location.hash.replace("#", "");
       const idx = sections.findIndex((s) => s.id === id);
-      if (idx >= 0 && idx !== activeIndexRef.current) {
-        animateTo(idx, NAV_DURATION);
+      if (idx >= 0 && idx !== activeSectionRef.current) {
+        scrollToSection(idx);
       }
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
+  }, [scrollToSection]);
+
+  /* ================= FOCUS / STRAY SCROLL ================= */
+  useEffect(() => {
+    const outer = outerRef.current;
+    const container = containerRef.current;
+    if (!outer || !container) return;
+
+    // Safety net for browsers without `overflow: clip`: an overflow-hidden box
+    // is still a scroll container, and any scrolling the browser does to it
+    // stacks on top of our transform with no way back. Pin it at zero.
+    const pin = () => {
+      if (outer.scrollTop !== 0) outer.scrollTop = 0;
+      if (outer.scrollLeft !== 0) outer.scrollLeft = 0;
+    };
+
+    // Since the browser can no longer scroll a field into view, we move the
+    // panel instead — otherwise tapping an off-screen input (or the mobile
+    // keyboard revealing one) would focus something nobody can see.
+    const onFocusIn = (e: FocusEvent) => {
+      pin();
+      const el = e.target as HTMLElement | null;
+      if (!el || !container.contains(el)) return;
+
+      const vh = outer.clientHeight || window.innerHeight;
+      const containerTop = container.getBoundingClientRect().top;
+      const top = el.getBoundingClientRect().top - containerTop;
+      const bottom = top + el.offsetHeight;
+
+      const overlapAt = (i: number) => {
+        const stop = stops.current[i];
+        if (!stop) return -1;
+        return Math.min(bottom, stop.y + vh) - Math.max(top, stop.y);
+      };
+
+      // Stay put if the element is already as visible as it can get.
+      let best = activeStopRef.current;
+      let bestVisible = overlapAt(best);
+      stops.current.forEach((_, i) => {
+        const visible = overlapAt(i);
+        if (visible > bestVisible + 1) {
+          bestVisible = visible;
+          best = i;
+        }
+      });
+
+      if (best !== activeStopRef.current) animateTo(best, NAV_DURATION);
+    };
+
+    outer.addEventListener("scroll", pin, { passive: true });
+    outer.addEventListener("focusin", onFocusIn);
+    pin();
+
+    return () => {
+      outer.removeEventListener("scroll", pin);
+      outer.removeEventListener("focusin", onFocusIn);
+    };
   }, [animateTo]);
 
   /* ================= RENDER ================= */
@@ -413,10 +631,9 @@ export function FullPageWrapper({ children }: FullPageWrapperProps) {
       </nav>
 
       {/* ================= SCROLL CONTENT ================= */}
-      <div
-        ref={outerRef}
-        className="fixed inset-0 overflow-hidden touch-none"
-      >
+      {/* .fullpage-viewport carries the clipping and touch-action rules — see
+          the comment on it in globals.css, both are load-bearing. */}
+      <div ref={outerRef} className="fixed inset-0 fullpage-viewport">
         <div ref={containerRef} className="will-change-transform">
           {children}
         </div>

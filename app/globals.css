@@ -124,6 +124,47 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* The page is a fixed full-viewport overlay driven by FullPageWrapper, so the
+     document itself must never scroll or bounce. `overscroll-behavior: none`
+     is what keeps pull-to-refresh and iOS rubber-banding out of the way now
+     that the viewport allows horizontal panning for the card carousels. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+}
+
+/* The viewport layer FullPageWrapper translates its panel inside.
+
+   `overflow: clip` (with the hidden fallback for pre-Safari-16) is deliberate:
+   an overflow-hidden box is still a scroll container, so the browser would
+   quietly scroll it — on a fragment link, or to reveal a form field the user
+   just tapped, which is exactly what the mobile keyboard triggers. That offset
+   stacks on top of our transform and nothing short of a reload undoes it.
+   A clipped box has no scroll position to leak.
+
+   touch-action: pan-x leaves horizontal panning to the browser (the mobile
+   card carousels scroll natively, with momentum and snapping) and keeps
+   vertical panning — plus pull-to-refresh — for us. */
+.fullpage-viewport {
+  overflow: hidden;
+  overflow: clip;
+  touch-action: pan-x;
+}
+
+/* Horizontal card carousels (mobile): keep the native scroll, lose the bar. */
+.hscroll {
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
 }
 
 /* Smooth section content animations */

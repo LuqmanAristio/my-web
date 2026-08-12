@@ -97,10 +97,13 @@ export function Experience() {
         <div className="md:hidden">
           <div
             className="
+              hscroll
               flex
               gap-4
               overflow-x-auto
               snap-x snap-mandatory
+              scroll-pl-4
+              -mx-4 px-4
               pb-4
             "
           >
@@ -108,8 +111,8 @@ export function Experience() {
               <article
                 key={exp.id}
                 className="
-                  min-w-full
-                  snap-center
+                  w-[85vw] shrink-0
+                  snap-start
                   rounded-2xl
                   bg-secondary/30
                   border border-border/50

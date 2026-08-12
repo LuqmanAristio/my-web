@@ -130,20 +130,22 @@ export function Projects() {
         {/* ================= MOBILE: HORIZONTAL SWIPE ================= */}
         <div className="md:hidden">
           <div className="
+            hscroll
             flex
             gap-4
             overflow-x-auto
             snap-x snap-mandatory
-            px-6
+            scroll-pl-4
+            -mx-4 px-4
             pb-4
           ">
             {projects.map((project) => (
               <article
                 key={project.id}
                 className="
-                  min-w-[88vw]
-                  max-w-[88vw]
-                  snap-center
+                  w-[85vw]
+                  shrink-0
+                  snap-start
                   rounded-2xl
                   bg-card
                   border

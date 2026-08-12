@@ -325,11 +325,13 @@ export function Hero() {
         </div>
 
         {/* Main content - Left aligned with offset */}
-        <div className="absolute left-[15%] md:left-[20%] top-1/2 -translate-y-1/2 max-w-4xl pr-6 md:pr-0">
+        {/* left-8 on mobile: a 15% inset costs ~55px of an already narrow
+            screen and pushed the headline and badge row off the edge. */}
+        <div className="absolute left-8 md:left-[20%] top-1/2 -translate-y-1/2 max-w-4xl pr-4 md:pr-0">
           
           {/* Status badge - aligned left */}
-          <div 
-            className="flex items-center gap-3 mb-8"
+          <div
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-8"
             style={{
               opacity: isInView ? 1 : 0,
               transform: isInView ? "translateX(0)" : "translateX(-30px)",
@@ -343,7 +345,7 @@ export function Hero() {
               </span>
               <span className="text-xs text-accent uppercase tracking-wider">Available for Work</span>
             </div>
-            <div className="h-px w-12 bg-border" />
+            <div className="hidden sm:block h-px w-12 bg-border" />
             <span className="text-xs text-muted-foreground/60 tracking-wider">Based in Indonesia</span>
           </div>
 
@@ -473,7 +475,7 @@ export function Hero() {
 
         {/* Bottom info bar */}
         <div 
-          className="absolute bottom-8 left-[15%] md:left-[20%] right-[15%] md:right-[20%] flex items-end justify-between"
+          className="absolute bottom-8 left-8 right-4 md:left-[20%] md:right-[20%] flex items-end justify-between"
           style={{
             opacity: isInView ? 1 : 0,
             transform: isInView ? "translateY(0)" : "translateY(30px)",

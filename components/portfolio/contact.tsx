@@ -70,11 +70,15 @@ export function Contact() {
     }
   };
 
+  // min-h-dvh (not h-dvh) on mobile: the form is taller than a small phone's
+  // viewport, and a fixed height plus overflow-hidden clipped it away with no
+  // way to reach the send button. FullPageWrapper adds a second snap stop for
+  // any section that outgrows the viewport.
   return (
     <section
       ref={ref}
       id="contact"
-      className="fullpage-section relative h-dvh flex items-center justify-center overflow-hidden px-6 bg-secondary/20"
+      className="fullpage-section relative min-h-dvh md:h-dvh flex items-center justify-center overflow-hidden px-4 md:px-6 py-14 md:py-0 bg-secondary/20"
     >
       {/* Large background number */}
       <div 
