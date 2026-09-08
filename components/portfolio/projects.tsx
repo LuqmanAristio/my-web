@@ -3,66 +3,61 @@
 import { useSectionInView } from "@/hooks/use-section-in-view";
 import { ArrowUpRight, Github } from "lucide-react";
 
+// Preview gambar project disimpan di `public/projects/` (path di bawah relatif ke /public).
 const projects = [
   {
     id: 1,
     title: "PawBack",
     description:
       "Lost and found platform for pets in Bali, Indonesia.",
-    tags: ["Next.js"],
-    year: "2026",
+    image: "/projects/pawback.webp",
     liveUrl: "https://pawback-id.vercel.app",
     githubUrl: "#",
   },
   {
     id: 2,
-    title: "My Weather",
+    title: "Havenly Booking",
     description:
-      "Real time weather forecast all around the world by location",
-    tags: ["Next.js", "Radix UI", "Tailwind", "Typescript"],
-    year: "2025",
-    liveUrl: "https://my-weather-beta-blush.vercel.app/",
+      "All-in-one property management for villas: reservations, front desk, housekeeping, night audit, payments, tax reports, owner payouts",
+    image: "/projects/havenly.webp",
+    liveUrl: "https://havenly-booking.vercel.app/",
     githubUrl: "#",
   },
   {
     id: 3,
-    title: "Iris",
+    title: "Tirta Villa",
     description:
-      "Product landing page for gadget promotion and explanation",
-    tags: ["Next.js", "Radix UI", "Tailwind", "Typescript"],
-    year: "2025",
-    liveUrl: "https://iris-three-drab.vercel.app/",
+      "Showcase site for a luxury tirta estate: villa collection, experiences, gallery, availability, booking checkout, enquiries",
+    image: "/projects/tirta-villa.webp",
+    liveUrl: "https://tirta-villa.vercel.app",
     githubUrl: "#",
   },
   {
     id: 4,
-    title: "LinkedIt",
+    title: "Sawarna Villa",
     description:
-      "Similar to linktree, help user create single page for multiple link",
-    tags: ["Next.js", "Golang", "Fiber", "Typescript"],
-    year: "2025",
-    liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio/linkedit-next",
+      "A booking website for a quiet private villa in Ubud, Bali — see it, then book.",
+    image: "/projects/sawarna-villa.webp",
+    liveUrl: "https://sawarna-villa.vercel.app/",
+    githubUrl: "#",
   },
   {
     id: 5,
-    title: "Melatec",
+    title: "Nova Villa",
     description:
-      "Music Similarities Checker with ML model integration for detecting similar music patterns.",
-    tags: ["Flutter", "Django", "AI/ML", "GCP"],
-    year: "2024",
-    liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio/melatec-frontend",
+      "Minimalist Architectural Web Experience for a Private Contemporary Bali Villa, with a Complete Booking Flow",
+    image: "/projects/nova-villa.webp",
+    liveUrl: "https://nova-villa-bali.vercel.app",
+    githubUrl: "#",
   },
   {
     id: 6,
-    title: "Presence",
+    title: "My Weather",
     description:
-      "Face Recognition Attendance System with custom AI model for accurate and efficient tracking.",
-    tags: ["React", "Node.js", "AI/ML", "Python"],
-    year: "2022",
-    liveUrl: "#",
-    githubUrl: "https://github.com/LuqmanAristio/presence-web-app",
+      "Real time weather forecast all around the world by location",
+    image: "/projects/my-weather.webp",
+    liveUrl: "https://my-weather-beta-blush.vercel.app/",
+    githubUrl: "#",
   },
 ];
 
@@ -150,11 +145,13 @@ export function Projects() {
                   overflow-hidden
                 "
               >
-                {/* Image placeholder */}
-                <div className="h-28 bg-secondary flex items-center justify-center">
-                  <span className="text-4xl font-bold text-muted-foreground/10">
-                    {project.year}
-                  </span>
+                <div className="h-44 bg-secondary overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={`${project.title} preview`}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
                 <div className="p-4 z-50">
@@ -188,20 +185,9 @@ export function Projects() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <p className="text-sm text-muted-foreground">
                     {project.description}
                   </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 text-xs font-mono rounded-full bg-secondary text-muted-foreground"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               </article>
             ))}
@@ -242,10 +228,13 @@ export function Projects() {
                 }s`,
               }}
             >
-              <div className="h-40 bg-secondary flex items-center justify-center">
-                <span className="text-5xl font-bold text-muted-foreground/10">
-                  {project.year}
-                </span>
+              <div className="h-48 lg:h-56 bg-secondary overflow-hidden">
+                <img
+                  src={project.image}
+                  alt={`${project.title} preview`}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
               </div>
 
               <div className="p-6">
@@ -279,20 +268,9 @@ export function Projects() {
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {project.description}
                 </p>
-
-                <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 text-xs font-mono rounded-full bg-secondary text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
               </div>
             </article>
           ))}
